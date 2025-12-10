@@ -1,0 +1,6 @@
+@CashLink.Api_HostAddress = http://localhost:5124
+
+GET {{CashLink.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
