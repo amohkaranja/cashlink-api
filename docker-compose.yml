@@ -1,8 +1,7 @@
 services:
   cashlink-api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: amohkaranja/cashlink-api:latest  # Pull from Docker Hub
+    # Remove the "build" section
     container_name: cashlink-api
     ports:
       - "5001:8080"
@@ -12,10 +11,4 @@ services:
       - ConnectionStrings__DefaultConnection=Server=host.docker.internal;Database=CashLinkDB;User Id=sa;Password=Password123!;TrustServerCertificate=True;MultipleActiveResultSets=true
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
     restart: unless-stopped

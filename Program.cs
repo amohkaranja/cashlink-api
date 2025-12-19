@@ -4,10 +4,12 @@ using CashLink.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add services
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Add Database Context
 builder.Services.AddDbContext<CashLinkDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -19,12 +21,16 @@ builder.Services.AddDbContext<CashLinkDbContext>(options =>
     )
 );
 
+// Register payment service as Scoped
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 
-builder.Services.AddHealthChecks();
+// Add health checks WITH database check
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<CashLinkDbContext>("database");
 
 var app = builder.Build();
 
+// Auto-migrate database on startup
 using (var scope = app.Services.CreateScope())
 {
     try
@@ -39,6 +45,7 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+// Configure middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -48,6 +55,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
+
+// Health check endpoint
 app.MapHealthChecks("/health");
 
 app.Run();

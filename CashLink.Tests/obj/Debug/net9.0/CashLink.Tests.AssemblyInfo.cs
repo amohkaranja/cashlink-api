@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CashLink.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e90937fb0672047e7441d7698f13b119de1c99c1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3874290fa3a0f244e2608b07e55906edfa7e7ba2")]
 [assembly: System.Reflection.AssemblyProductAttribute("CashLink.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CashLink.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
