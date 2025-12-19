@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "1emWn61goBI=",
+  "dgSpecHash": "sxftK6r/HMs=",
   "success": true,
   "projectFilePath": "/Users/amosngigi/Desktop/workspace/cashlink-api/CashLink.Tests/CashLink.Tests.csproj",
   "expectedPackageFiles": [
     "/Users/amosngigi/.nuget/packages/coverlet.collector/6.0.2/coverlet.collector.6.0.2.nupkg.sha512",
-    "/Users/amosngigi/.nuget/packages/microsoft.aspnetcore.openapi/9.0.7/microsoft.aspnetcore.openapi.9.0.7.nupkg.sha512",
+    "/Users/amosngigi/.nuget/packages/microsoft.aspnetcore.openapi/8.0.7/microsoft.aspnetcore.openapi.8.0.7.nupkg.sha512",
     "/Users/amosngigi/.nuget/packages/microsoft.codecoverage/17.12.0/microsoft.codecoverage.17.12.0.nupkg.sha512",
     "/Users/amosngigi/.nuget/packages/microsoft.extensions.apidescription.server/9.0.0/microsoft.extensions.apidescription.server.9.0.0.nupkg.sha512",
     "/Users/amosngigi/.nuget/packages/microsoft.net.test.sdk/17.12.0/microsoft.net.test.sdk.17.12.0.nupkg.sha512",
