@@ -67,5 +67,26 @@ public class PaymentsController : ControllerBase
         var payments = await _paymentService.GetAllPaymentsAsync();
         return Ok(payments);
     }
-
+    [HttpPatch("{id}/status")]
+    public async Task<ActionResult<PaymentResponse>> UpdatePaymentStatus(int id, [FromBody] string status)
+    {
+        try
+        {
+            var payment = await _paymentService.UpdatePaymentStatusAsync(id, status);
+            return Ok(new PaymentResponse
+            {
+                Success = true,
+                Message = "Payment status updated",
+                Data = payment
+            });
+        }
+        catch (Exception ex)
+        {
+            return NotFound(new PaymentResponse
+            {
+                Success = false,
+                Message = ex.Message
+            });
+        }
+    }
 }

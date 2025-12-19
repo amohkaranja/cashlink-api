@@ -30,6 +30,9 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Redirect root to Swagger UI
+app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
+
 // Health check endpoint
 app.MapHealthChecks("/health");
 

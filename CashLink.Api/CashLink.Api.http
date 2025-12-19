@@ -1,6 +1,300 @@
-@CashLink.Api_HostAddress = http://localhost:5124
+#######################################################################
+# CashLink Payment API - HTTP Request Examples
+# Version: 1.0
+# Description: Complete API documentation with working examples
+# Base URL: http://localhost:5124
+#######################################################################
 
-GET {{CashLink.Api_HostAddress}}/weatherforecast/
+@CashLink_Api_HostAddress = http://localhost:5124
+
+#######################################################################
+# PAYMENT ENDPOINTS
+#######################################################################
+
+# ==================================================
+# Create Payment
+# ==================================================
+# Description: Creates a new payment transaction between two accounts
+# Method: POST
+# Endpoint: /api/payments
+#
+# Request Body:
+#   - senderAccount (required): Sender's phone number (254XXXXXXXXX format)
+#   - receiverAccount (required): Receiver's phone number (254XXXXXXXXX format)
+#   - amount (required): Payment amount (decimal, positive value)
+#   - currency (optional): Currency code (default: "KES")
+#   - description (optional): Payment description/note
+#
+# Response (200 OK):
+# {
+#   "success": true,
+#   "message": "Payment created successfully",
+#   "data": {
+#     "id": 1,
+#     "transactionRef": "TXN_12345",
+#     "senderAccount": "254712345678",
+#     "receiverAccount": "254787654321",
+#     "amount": 1000.00,
+#     "currency": "KES",
+#     "status": "Pending",
+#     "createdAt": "2025-12-10T10:30:00Z",
+#     "description": "Payment for services"
+#   }
+# }
+#
+# Response (400 Bad Request):
+# {
+#   "success": false,
+#   "message": "Error message describing validation failure"
+# }
+
+### Create payment with all fields
+POST {{CashLink_Api_HostAddress}}/api/payments
+Content-Type: application/json
+
+{
+  "senderAccount": "254712345678",
+  "receiverAccount": "254787654321",
+  "amount": 1000.00,
+  "currency": "KES",
+  "description": "Payment for services"
+}
+
+### Create payment with minimal required fields (currency defaults to KES)
+POST {{CashLink_Api_HostAddress}}/api/payments
+Content-Type: application/json
+
+{
+  "senderAccount": "254723456789",
+  "receiverAccount": "254798765432",
+  "amount": 500.50
+}
+
+### Create payment in USD currency
+POST {{CashLink_Api_HostAddress}}/api/payments
+Content-Type: application/json
+
+{
+  "senderAccount": "254711111111",
+  "receiverAccount": "254722222222",
+  "amount": 25.00,
+  "currency": "USD",
+  "description": "International transfer"
+}
+
+### Create payment - Error case (negative amount)
+POST {{CashLink_Api_HostAddress}}/api/payments
+Content-Type: application/json
+
+{
+  "senderAccount": "254712345678",
+  "receiverAccount": "254787654321",
+  "amount": -100.00,
+  "currency": "KES"
+}
+
+# ==================================================
+# Get All Payments
+# ==================================================
+# Description: Retrieves a list of all payments in the system
+# Method: GET
+# Endpoint: /api/payments
+#
+# Response (200 OK):
+# [
+#   {
+#     "id": 1,
+#     "transactionRef": "TXN_12345",
+#     "senderAccount": "254712345678",
+#     "receiverAccount": "254787654321",
+#     "amount": 1000.00,
+#     "currency": "KES",
+#     "status": "Pending",
+#     "createdAt": "2025-12-10T10:30:00Z",
+#     "description": "Payment for services"
+#   },
+#   { ... }
+# ]
+
+### Get all payments
+GET {{CashLink_Api_HostAddress}}/api/payments
 Accept: application/json
+
+# ==================================================
+# Get Payment by ID
+# ==================================================
+# Description: Retrieves a specific payment by its ID
+# Method: GET
+# Endpoint: /api/payments/{id}
+# Path Parameters:
+#   - id (required): Payment ID (integer)
+#
+# Response (200 OK):
+# {
+#   "success": true,
+#   "message": "Payment retrieved successfully",
+#   "data": {
+#     "id": 1,
+#     "transactionRef": "TXN_12345",
+#     "senderAccount": "254712345678",
+#     "receiverAccount": "254787654321",
+#     "amount": 1000.00,
+#     "currency": "KES",
+#     "status": "Pending",
+#     "createdAt": "2025-12-10T10:30:00Z",
+#     "description": "Payment for services"
+#   }
+# }
+#
+# Response (404 Not Found):
+# {
+#   "success": false,
+#   "message": "Payment not found"
+# }
+
+### Get payment by ID (success case)
+GET {{CashLink_Api_HostAddress}}/api/payments/1
+Accept: application/json
+
+### Get payment by ID (not found case)
+GET {{CashLink_Api_HostAddress}}/api/payments/99999
+Accept: application/json
+
+# ==================================================
+# Update Payment Status
+# ==================================================
+# Description: Updates the status of an existing payment
+# Method: PATCH
+# Endpoint: /api/payments/{id}/status
+# Path Parameters:
+#   - id (required): Payment ID (integer)
+# Request Body: Status string (one of: "Pending", "Processing", "Completed", "Failed")
+#
+# Response (200 OK):
+# {
+#   "success": true,
+#   "message": "Payment status updated",
+#   "data": {
+#     "id": 1,
+#     "transactionRef": "TXN_12345",
+#     "status": "Completed",
+#     ...
+#   }
+# }
+#
+# Response (404 Not Found):
+# {
+#   "success": false,
+#   "message": "Payment not found"
+# }
+
+### Update payment status to Processing
+PATCH {{CashLink_Api_HostAddress}}/api/payments/1/status
+Content-Type: application/json
+
+"Processing"
+
+### Update payment status to Completed
+PATCH {{CashLink_Api_HostAddress}}/api/payments/1/status
+Content-Type: application/json
+
+"Completed"
+
+### Update payment status to Failed
+PATCH {{CashLink_Api_HostAddress}}/api/payments/1/status
+Content-Type: application/json
+
+"Failed"
+
+### Update payment status back to Pending
+PATCH {{CashLink_Api_HostAddress}}/api/payments/1/status
+Content-Type: application/json
+
+"Pending"
+
+### Update payment status - Error case (payment not found)
+PATCH {{CashLink_Api_HostAddress}}/api/payments/99999/status
+Content-Type: application/json
+
+"Completed"
+
+#######################################################################
+# HEALTH CHECK ENDPOINTS
+#######################################################################
+
+# ==================================================
+# Health Check
+# ==================================================
+# Description: Checks if the API is running and healthy
+# Method: GET
+# Endpoint: /health
+#
+# Response (200 OK): "Healthy"
+
+### Check API health
+GET {{CashLink_Api_HostAddress}}/health
+
+#######################################################################
+# WORKFLOW EXAMPLES
+#######################################################################
+
+# ==================================================
+# Complete Payment Workflow
+# ==================================================
+# This section demonstrates a typical payment lifecycle
+
+### Step 1: Create a new payment
+# @name createPayment
+POST {{CashLink_Api_HostAddress}}/api/payments
+Content-Type: application/json
+
+{
+  "senderAccount": "254700000000",
+  "receiverAccount": "254711111111",
+  "amount": 2500.00,
+  "currency": "KES",
+  "description": "Workflow test payment"
+}
+
+### Step 2: Get all payments to verify creation
+GET {{CashLink_Api_HostAddress}}/api/payments
+Accept: application/json
+
+### Step 3: Get the specific payment (replace ID from step 1 response)
+GET {{CashLink_Api_HostAddress}}/api/payments/1
+Accept: application/json
+
+### Step 4: Update status to Processing
+PATCH {{CashLink_Api_HostAddress}}/api/payments/1/status
+Content-Type: application/json
+
+"Processing"
+
+### Step 5: Update status to Completed
+PATCH {{CashLink_Api_HostAddress}}/api/payments/1/status
+Content-Type: application/json
+
+"Completed"
+
+### Step 6: Verify final status
+GET {{CashLink_Api_HostAddress}}/api/payments/1
+Accept: application/json
+
+#######################################################################
+# TESTING & VALIDATION NOTES
+#######################################################################
+#
+# Valid Status Values: "Pending", "Processing", "Completed", "Failed"
+# Currency Codes: "KES", "USD", etc.
+# Phone Number Format: 254XXXXXXXXX (Kenyan format)
+# Amount: Must be positive decimal value
+#
+# Common HTTP Status Codes:
+# - 200 OK: Request successful
+# - 400 Bad Request: Invalid request data
+# - 404 Not Found: Resource doesn't exist
+# - 500 Internal Server Error: Server-side error
+#
+#######################################################################
 
 ###

@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "mJpDQAbrwDs=",
+  "dgSpecHash": "/hUdgKYepqE=",
   "success": true,
   "projectFilePath": "/Users/amosngigi/Desktop/workspace/cashlink-api/CashLink.Api/CashLink.Api.csproj",
   "expectedPackageFiles": [
-    "/Users/amosngigi/.nuget/packages/microsoft.aspnetcore.openapi/9.0.7/microsoft.aspnetcore.openapi.9.0.7.nupkg.sha512",
-    "/Users/amosngigi/.nuget/packages/microsoft.extensions.apidescription.server/9.0.0/microsoft.extensions.apidescription.server.9.0.0.nupkg.sha512",
+    "/Users/amosngigi/.nuget/packages/microsoft.aspnetcore.openapi/8.0.7/microsoft.aspnetcore.openapi.8.0.7.nupkg.sha512",
+    "/Users/amosngigi/.nuget/packages/microsoft.extensions.apidescription.server/8.0.0/microsoft.extensions.apidescription.server.8.0.0.nupkg.sha512",
     "/Users/amosngigi/.nuget/packages/microsoft.openapi/2.3.0/microsoft.openapi.2.3.0.nupkg.sha512",
     "/Users/amosngigi/.nuget/packages/swashbuckle.aspnetcore/10.0.1/swashbuckle.aspnetcore.10.0.1.nupkg.sha512",
     "/Users/amosngigi/.nuget/packages/swashbuckle.aspnetcore.swagger/10.0.1/swashbuckle.aspnetcore.swagger.10.0.1.nupkg.sha512",
