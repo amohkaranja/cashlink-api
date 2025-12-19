@@ -5,10 +5,13 @@ services:
       dockerfile: Dockerfile
     container_name: cashlink-api
     ports:
-      - "5001:8080"  # Changed from 5000 to 5001
+      - "5001:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Server=host.docker.internal;Database=CashLinkDB;User Id=sa;Password=Password123!;TrustServerCertificate=True;MultipleActiveResultSets=true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s

@@ -1,11 +1,22 @@
+using CashLink.Api.Data;
 using CashLink.Api.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace CashLink.Api.Services;
 public class PaymentService : IPaymentService
 {
     private  static readonly List<Payment> _payments = new();
     private static int _nextId = 1;
-    public Task<Payment> CreatePaymentAsync(CreatePaymentRequest request)
+     private readonly CashLinkDbContext _context;
+    private readonly ILogger<PaymentService> _logger;
+    public PaymentService(CashLinkDbContext context, ILogger<PaymentService> logger)
+    {
+        _context = context;
+        _logger = logger;
+    }
+
+
+    public async Task<Payment> CreatePaymentAsync(CreatePaymentRequest request)
     {
         var payment = new Payment
         {
@@ -20,33 +31,46 @@ public class PaymentService : IPaymentService
             CreatedAt = DateTime.UtcNow
         };
 
-        _payments.Add(payment);
-        
-        // Simulate processing
-        Task.Run(async () =>
+        _context.Payments.Add(payment);
+
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Payment created: {TransactionRef}", payment.TransactionRef);
+
+        // Simulate async processing
+        _ = Task.Run(async () =>
         {
             await Task.Delay(2000);
             payment.Status = "Completed";
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Payment completed: {TransactionRef}", payment.TransactionRef);
         });
 
-        return Task.FromResult(payment);
+        return payment;
     }
-    public Task<Payment?> GetPaymentAsync(int id)
+   public async Task<Payment?> GetPaymentAsync(int id)
     {
-        var payment = _payments.FirstOrDefault(p => p.Id == id);
-        return Task.FromResult(payment);
+        return await _context.Payments.FindAsync(id);
     }
-    public Task<IEnumerable<Payment>> GetAllPaymentsAsync()
+
+   public async Task<IEnumerable<Payment>> GetAllPaymentsAsync()
     {
-        return Task.FromResult(_payments.AsEnumerable());
+        return await _context.Payments
+            .OrderByDescending(p => p.CreatedAt)
+            .ToListAsync();
     }
-    public Task<Payment> UpdatePaymentStatusAsync(int id, string status)
+
+     public async Task<Payment> UpdatePaymentStatusAsync(int id, string status)
     {
-        var payment = _payments.FirstOrDefault(p => p.Id == id);
+        var payment = await _context.Payments.FindAsync(id);
         if (payment == null)
             throw new Exception("Payment not found");
 
         payment.Status = status;
-        return Task.FromResult(payment);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Payment {Id} status updated to {Status}", id, status);
+        
+        return payment;
     }
 }

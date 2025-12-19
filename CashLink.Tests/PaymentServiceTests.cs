@@ -1,16 +1,33 @@
-﻿using Xunit;
+using Xunit;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using CashLink.Api.Services;
 using CashLink.Api.Models;
+using CashLink.Api.Data;
 
 namespace CashLink.Tests;
 
-public class PaymentServiceTests
+public class PaymentServiceTests : IDisposable
 {
+    private readonly CashLinkDbContext _context;
     private readonly IPaymentService _paymentService;
 
     public PaymentServiceTests()
     {
-        _paymentService = new PaymentService();
+        var options = new DbContextOptionsBuilder<CashLinkDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        _context = new CashLinkDbContext(options);
+        
+        var logger = new LoggerFactory().CreateLogger<PaymentService>();
+        _paymentService = new PaymentService(_context, logger);
+    }
+
+    public void Dispose()
+    {
+        _context.Database.EnsureDeleted();
+        _context.Dispose();
     }
 
     [Fact]
@@ -35,8 +52,10 @@ public class PaymentServiceTests
         Assert.Equal(request.ReceiverAccount, payment.ReceiverAccount);
         Assert.Equal(request.Amount, payment.Amount);
         Assert.Equal("Pending", payment.Status);
+        Assert.True(payment.Id > 0); // Verify it was saved to DB
     }
-[Fact]
+
+    [Fact]
     public async Task GetPayment_ShouldReturnPayment_WhenExists()
     {
         // Arrange
@@ -55,7 +74,9 @@ public class PaymentServiceTests
         // Assert
         Assert.NotNull(payment);
         Assert.Equal(created.Id, payment.Id);
+        Assert.Equal(created.TransactionRef, payment.TransactionRef);
     }
+
     [Fact]
     public async Task GetPayment_ShouldReturnNull_WhenNotExists()
     {
@@ -66,5 +87,31 @@ public class PaymentServiceTests
         Assert.Null(payment);
     }
 
-    // Additional tests for GetPaymentAsync, GetAllPaymentsAsync, UpdatePaymentStatusAsync can be added here
+    [Fact]
+    public async Task GetAllPayments_ShouldReturnMultiplePayments()
+    {
+        // Arrange
+        await _paymentService.CreatePaymentAsync(new CreatePaymentRequest
+        {
+            SenderAccount = "254711111111",
+            ReceiverAccount = "254722222222",
+            Amount = 1000,
+            Currency = "KES"
+        });
+
+        await _paymentService.CreatePaymentAsync(new CreatePaymentRequest
+        {
+            SenderAccount = "254733333333",
+            ReceiverAccount = "254744444444",
+            Amount = 2000,
+            Currency = "KES"
+        });
+
+        // Act
+        var payments = await _paymentService.GetAllPaymentsAsync();
+
+        // Assert
+        Assert.NotNull(payments);
+        Assert.Equal(2, payments.Count());
+    }
 }
