@@ -1,33 +1,66 @@
 using Xunit;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
+using Dapper;
 using CashLink.Api.Services;
 using CashLink.Api.Models;
-using CashLink.Api.Data;
+using System.Data;
 
 namespace CashLink.Tests;
 
+// SQLite connection factory that keeps connection open
+public class TestConnectionFactory : IDbConnectionFactory
+{
+    private readonly IDbConnection _connection;
+
+    public TestConnectionFactory(IDbConnection connection)
+    {
+        _connection = connection;
+    }
+
+    public IDbConnection CreateConnection()
+    {
+        // Always return the SAME open connection
+        // Don't open/close it - keep it alive for the test
+        return _connection;
+    }
+}
+
 public class PaymentServiceTests : IDisposable
 {
-    private readonly CashLinkDbContext _context;
+    private readonly SqliteConnection _connection;
     private readonly IPaymentService _paymentService;
 
     public PaymentServiceTests()
     {
-        var options = new DbContextOptionsBuilder<CashLinkDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
+        // Create in-memory connection and KEEP IT OPEN
+        _connection = new SqliteConnection("DataSource=:memory:");
+        _connection.Open();
 
-        _context = new CashLinkDbContext(options);
-        
+        // Create table
+        _connection.Execute(@"
+            CREATE TABLE Payments (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                TransactionRef TEXT NOT NULL UNIQUE,
+                SenderAccount TEXT NOT NULL,
+                ReceiverAccount TEXT NOT NULL,
+                Amount REAL NOT NULL,
+                Currency TEXT NOT NULL,
+                Status TEXT NOT NULL,
+                CreatedAt TEXT NOT NULL,
+                Description TEXT
+            );
+        ");
+
         var logger = new LoggerFactory().CreateLogger<PaymentService>();
-        _paymentService = new PaymentService(_context, logger);
+        var connectionFactory = new TestConnectionFactory(_connection);
+        _paymentService = new PaymentService(connectionFactory, logger);
     }
 
     public void Dispose()
     {
-        _context.Database.EnsureDeleted();
-        _context.Dispose();
+        _connection?.Close();
+        _connection?.Dispose();
     }
 
     [Fact]
@@ -52,7 +85,8 @@ public class PaymentServiceTests : IDisposable
         Assert.Equal(request.ReceiverAccount, payment.ReceiverAccount);
         Assert.Equal(request.Amount, payment.Amount);
         Assert.Equal("Pending", payment.Status);
-        Assert.True(payment.Id > 0); // Verify it was saved to DB
+        Assert.True(payment.Id > 0);
+        Assert.NotEmpty(payment.TransactionRef);
     }
 
     [Fact]
@@ -113,5 +147,35 @@ public class PaymentServiceTests : IDisposable
         // Assert
         Assert.NotNull(payments);
         Assert.Equal(2, payments.Count());
+    }
+
+    [Fact]
+    public async Task UpdatePaymentStatus_ShouldUpdateStatus()
+    {
+        // Arrange
+        var request = new CreatePaymentRequest
+        {
+            SenderAccount = "254712345678",
+            ReceiverAccount = "254787654321",
+            Amount = 1000,
+            Currency = "KES"
+        };
+        var created = await _paymentService.CreatePaymentAsync(request);
+
+        // Act
+        var updated = await _paymentService.UpdatePaymentStatusAsync(created.Id, "Completed");
+
+        // Assert
+        Assert.NotNull(updated);
+        Assert.Equal("Completed", updated.Status);
+    }
+
+    [Fact]
+    public async Task UpdatePaymentStatus_ShouldThrowException_WhenNotExists()
+    {
+        // Act & Assert
+        await Assert.ThrowsAsync<Exception>(
+            () => _paymentService.UpdatePaymentStatusAsync(9999, "Completed")
+        );
     }
 }

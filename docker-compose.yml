@@ -1,7 +1,8 @@
 services:
   cashlink-api:
-    image: amohkaranja/cashlink-api:latest  # Pull from Docker Hub
-    # Remove the "build" section
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: cashlink-api
     ports:
       - "5001:8080"

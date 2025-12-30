@@ -23,6 +23,9 @@ EXPOSE 8081
 
 COPY --from=publish /app/publish .
 
+# Copy database schema
+COPY CashLink.Api/Database/ ./Database/
+
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8080/health || exit 1
