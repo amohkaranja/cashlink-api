@@ -8,11 +8,16 @@ public class PaymentService : IPaymentService
 {
     private readonly IDbConnectionFactory _connectionFactory;
     private readonly ILogger<PaymentService> _logger;
+    private readonly bool _isSqlite;
 
     public PaymentService(IDbConnectionFactory connectionFactory, ILogger<PaymentService> logger)
     {
         _connectionFactory = connectionFactory;
         _logger = logger;
+        
+        // Detect if using SQLite (for tests)
+        var conn = _connectionFactory.CreateConnection();
+        _isSqlite = conn.GetType().Name.Contains("Sqlite");
     }
 
     public async Task<Payment> CreatePaymentAsync(CreatePaymentRequest request)
@@ -29,12 +34,14 @@ public class PaymentService : IPaymentService
             CreatedAt = DateTime.UtcNow
         };
 
-        const string sql = @"
-            INSERT INTO Payments (TransactionRef, SenderAccount, ReceiverAccount, Amount, Currency, Status, CreatedAt, Description)
-            VALUES (@TransactionRef, @SenderAccount, @ReceiverAccount, @Amount, @Currency, @Status, @CreatedAt, @Description);
-            
-            SELECT CAST(SCOPE_IDENTITY() AS INT);
-        ";
+        // Use appropriate SQL for database type
+        var sql = _isSqlite
+            ? @"INSERT INTO Payments (TransactionRef, SenderAccount, ReceiverAccount, Amount, Currency, Status, CreatedAt, Description)
+                VALUES (@TransactionRef, @SenderAccount, @ReceiverAccount, @Amount, @Currency, @Status, @CreatedAt, @Description);
+                SELECT last_insert_rowid();"
+            : @"INSERT INTO Payments (TransactionRef, SenderAccount, ReceiverAccount, Amount, Currency, Status, CreatedAt, Description)
+                VALUES (@TransactionRef, @SenderAccount, @ReceiverAccount, @Amount, @Currency, @Status, @CreatedAt, @Description);
+                SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
         var connection = _connectionFactory.CreateConnection();
         payment.Id = await connection.ExecuteScalarAsync<int>(sql, payment);
